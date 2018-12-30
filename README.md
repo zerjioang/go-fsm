@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="gobus" src="" width="500px"></img>
+  <img alt="gobus" src="https://user-images.githubusercontent.com/6706342/50550075-6a896780-0c69-11e9-9938-f38e11d717ce.png" width="500px"></img>
   <h3 align="center"><b>Finite State Machine for Go</b></h3>
 </p>
 
@@ -52,6 +52,32 @@ machine.ChangeStateTo("a")
 
 dot := machine.DotGraph()
 fmt.Println(dot)
+```
+
+## Graphviz dot view
+
+This library also allows developers to create raw **.dot** files as following, in an automatic way:
+
+```dot
+digraph fsm {
+    size ="4,4";
+    node [shape=circle,fontsize=12,fixedsize=true,width=0.8];
+    edge [fontsize=6];
+    rankdir=LR;
+    "b" -> "c" [ label = "moveToC" ];
+    "b" -> "finish" [ label = "toFinish" ];
+    "c" -> "finish" [ label = "toFinish" ];
+    "start" -> "a" [ label = "toA" ];
+    "a" -> "b" [ label = "toB" ];
+    "a" -> "c" [ label = "toC" ];
+    "c" -> "a" [ label = "backToA" ];
+
+    "start" [shape="doublecircle" color="blue"];
+    "a" [shape="circle" color="black"];
+    "b" [shape="circle" color="black"];
+    "c" [shape="circle" color="black"];
+    "finish" [shape="doublecircle" color="red"];
+}
 ```
 
 ## Benchmarking
