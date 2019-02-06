@@ -9,9 +9,9 @@ const (
 )
 
 type StateEvents struct {
-	OnEnter   func()    `json:",omitempty"`
-	OnUpdate  func()    `json:",omitempty"`
-	OnExit    func()    `json:",omitempty"`
+	OnEnter   func()    `json:"-"`
+	OnUpdate  func()    `json:"-"`
+	OnExit    func()    `json:"-"`
 	StateType StateType `json:"type"`
 }
 

@@ -7,6 +7,10 @@ import (
 	"github.com/zerjioang/go-fsm"
 )
 
+const (
+	expectedJson = `{"states":{"a":{"type":2},"b":{"type":2},"c":{"type":2},"finish":{"type":1},"start":{"type":0}},"transitions":{"a-b":{"name":"toB","from":"a","to":"b"},"a-c":{"name":"toC","from":"a","to":"c"},"b-c":{"name":"moveToC","from":"b","to":"c"},"b-finish":{"name":"toFinish","from":"b","to":"finish"},"c-a":{"name":"backToA","from":"c","to":"a"},"c-finish":{"name":"toFinish","from":"c","to":"finish"},"start-a":{"name":"toA","from":"start","to":"a"}},"current":"start"}`
+)
+
 func TestUnitFsm(t *testing.T) {
 	t.Run("instantiation", func(t *testing.T) {
 		fsm.New()
@@ -42,6 +46,51 @@ func TestUnitFsm(t *testing.T) {
 		result := m.HasState("start")
 		if result != true {
 			t.Error("failing on hasState() function")
+		}
+	})
+	t.Run("fsm-json", func(t *testing.T) {
+		machine := fsm.New()
+
+		machine.AddState("start", fsm.NoStateEvents)
+		machine.AddState("a", fsm.NoStateEvents)
+		machine.AddState("b", fsm.NoStateEvents)
+		machine.AddState("c", fsm.NoStateEvents)
+		machine.AddState("finish", fsm.NoStateEvents)
+
+		machine.AddTransaction("toA", "start", "a")
+		machine.AddTransaction("toB", "a", "b")
+		machine.AddTransaction("toC", "a", "c")
+		machine.AddTransaction("backToA", "c", "a")
+		machine.AddTransaction("moveToC", "b", "c")
+		machine.AddTransaction("toFinish", "b", "finish")
+		machine.AddTransaction("toFinish", "c", "finish")
+
+		machine.SetInitialState("start")
+		machine.SetFinalState("finish")
+
+		data, err := machine.Json()
+
+		if err != nil {
+			t.Error("failed to generate fsm json", err)
+		}
+		if string(data) != expectedJson {
+			t.Error("unexpected json result")
+			t.Log(string(data))
+		}
+	})
+
+	t.Run("fsm-json-load", func(t *testing.T) {
+		machine := fsm.New()
+
+		err := machine.Load([]byte(expectedJson))
+		if err != nil {
+			t.Error("failed to load fsm from json", err)
+		}
+
+		data, err := machine.Json()
+		if string(data) != expectedJson {
+			t.Error("unexpected json result")
+			t.Log(string(data))
 		}
 	})
 }
