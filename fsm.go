@@ -2,6 +2,7 @@ package fsm
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 )
 
@@ -19,7 +20,7 @@ known as a “transaction log.”
 
 type FiniteStateMachine struct {
 	namedStates        map[string]StateEvents
-	namedTransactions  map[string]StateTransaction
+	namedTransactions  map[string]StateTransition
 	currentState       string
 	currentStateEvents StateEvents
 }
@@ -41,7 +42,7 @@ func (machine *FiniteStateMachine) HasState(name string) bool {
 
 // adds new transaction to the Finite state machine specifing the transaction name, origin and destination
 func (machine *FiniteStateMachine) AddTransaction(transactioName string, fromState string, toState string) {
-	tx := StateTransaction{transactioName: transactioName, fromState: fromState, toState: toState}
+	tx := StateTransition{TransactionName: transactioName, FromState: fromState, ToState: toState}
 	key := fromState + "-" + toState
 	machine.namedTransactions[key] = tx
 }
@@ -86,7 +87,7 @@ func (machine *FiniteStateMachine) ChangeStateTo(stateName string) {
 	// check if we have a valid transaction from current state to requested state
 	_, valid := machine.HasValidTransaction(machine.currentState, stateName)
 	if valid {
-		//fmt.Println("changing state from", machine.currentState, "to", stateName, "using transaction", txData.transactioName)
+		//fmt.Println("changing state from", machine.currentState, "to", stateName, "using transaction", txData.TransactionName)
 		//trigger previous state exit event
 		if machine.currentStateEvents.OnExit != nil {
 			machine.currentStateEvents.OnExit()
@@ -105,7 +106,7 @@ func (machine *FiniteStateMachine) ChangeStateTo(stateName string) {
 		//fmt.Println("there is no a direct transaction from", machine.currentState, "to", stateName)
 	}
 }
-func (machine *FiniteStateMachine) HasValidTransaction(from string, to string) (StateTransaction, bool) {
+func (machine *FiniteStateMachine) HasValidTransaction(from string, to string) (StateTransition, bool) {
 	//fmt.Println("checkinf if valid transaction exist from", from, "to", to)
 	key := from + "-" + to
 	tx, found := machine.namedTransactions[key]
@@ -127,7 +128,7 @@ func (machine *FiniteStateMachine) DotGraph() string {
 	// make sure the initial state is at top
 	for k, v := range machine.namedTransactions {
 		states[k]++
-		buf.WriteString(fmt.Sprintf(`    "%s" -> "%s" [ label = "%s" ];`, v.fromState, v.toState, v.transactioName))
+		buf.WriteString(fmt.Sprintf(`    "%s" -> "%s" [ label = "%s" ];`, v.FromState, v.ToState, v.TransactionName))
 		buf.WriteString("\n")
 	}
 
@@ -141,11 +142,27 @@ func (machine *FiniteStateMachine) DotGraph() string {
 	return buf.String()
 }
 
+// return machine content encoded as Json
+func (machine *FiniteStateMachine) Json() ([]byte, error) {
+	type internalMachine struct {
+		NamedStates       map[string]StateEvents     `json:"states"`
+		NamedTransactions map[string]StateTransition `json:"transitions"`
+		CurrentState      string                     `json:"current"`
+	}
+	var internal internalMachine
+	internal = internalMachine{
+		NamedStates:       machine.namedStates,
+		NamedTransactions: machine.namedTransactions,
+		CurrentState:      machine.currentState,
+	}
+	return json.Marshal(internal)
+}
+
 // Create a new Finite state machine and returns it as struct
 func New() FiniteStateMachine {
 	m := FiniteStateMachine{}
 	m.namedStates = make(map[string]StateEvents, 0)
-	m.namedTransactions = make(map[string]StateTransaction, 0)
+	m.namedTransactions = make(map[string]StateTransition, 0)
 	return m
 }
 
@@ -153,6 +170,6 @@ func New() FiniteStateMachine {
 func NewPtr() *FiniteStateMachine {
 	m := new(FiniteStateMachine)
 	m.namedStates = make(map[string]StateEvents, 0)
-	m.namedTransactions = make(map[string]StateTransaction, 0)
+	m.namedTransactions = make(map[string]StateTransition, 0)
 	return m
 }

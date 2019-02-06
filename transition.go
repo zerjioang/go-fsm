@@ -1,7 +1,7 @@
 package fsm
 
-type StateTransaction struct {
-	transactioName string
-	fromState      string
-	toState        string
+type StateTransition struct {
+	TransactionName string `json:"name"`
+	FromState       string `json:"from"`
+	ToState         string `json:"to"`
 }
