@@ -179,6 +179,11 @@ func (machine *FiniteStateMachine) Load(raw []byte) error {
 	}
 }
 
+// State returns current state of the FSM
+func (machine *FiniteStateMachine) State() string {
+	return machine.currentState
+}
+
 // Create a new Finite state machine and returns it as struct
 func New() FiniteStateMachine {
 	m := FiniteStateMachine{}
